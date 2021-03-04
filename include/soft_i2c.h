@@ -45,6 +45,9 @@
 
 void I2c1_Init();
 void I2c2_Init();
+void enable_plic_interrupts();
+
+void SlaveClockHandler(__attribute__((unused)) uint32_t num);
 
 void MasterSelectSlave(unsigned char slave_address);
 

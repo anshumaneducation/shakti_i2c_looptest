@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "soft_i2c.h"
 #include <uart.h>
+#include "plic_driver.h"
 
 #define SLAVE_ADDRESS 0x90
 
@@ -17,8 +18,21 @@ int main()
     // Set up Slave
     I2c2_Init();
 
+    // Setup GPIO interrupt on slave SCL
+    //init plic module
+	plic_init();
+
+    //configure interrupt id 7
+	configure_interrupt(PLIC_INTERRUPT_9);
+
+	//set the corresponding isr for interrupt id 7
+	isr_table[PLIC_INTERRUPT_9] = SlaveClockHandler;
+
+    enable_plic_interrupts();
+
     // Master Check if Slave is alive
     MasterSelectSlave(SLAVE_ADDRESS);
+
 
     // Check if Ack is received
     if(ReadSlaveAckForWrite())

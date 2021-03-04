@@ -31,14 +31,12 @@ void I2c1_Init()
  * */
 void I2c2_Init()
 {
-     // Set SCL as output
-	/*
+     // Set SCL slave as input
     unsigned long readData = 0;
 	readData = read_word(GPIO_DIRECTION_CNTRL_REG);
-	write_word(GPIO_DIRECTION_CNTRL_REG, (readData | I2C2_SCL) );
-	printf("SCL2 set as output\n");
+	write_word(GPIO_DIRECTION_CNTRL_REG, (readData & ~(I2C2_SCL)) );
+	printf("SCL2 set as input\n");
 
-	*/
 
 
 } /* I2c2_Init */
@@ -164,8 +162,78 @@ bool ReadSlaveAckForWrite(){
 	soft_delay(200,200);
 
 	if(readData == 0)
-		return false;
+		return true;
 	else
 		return false;
 
 } /* ReadSlaveAckForWrite */
+
+
+
+/** @fn SlaveClockHandler
+ *  @return void
+ *  @arg None
+ * 
+ * */
+void SlaveClockHandler(__attribute__((unused)) uint32_t num)
+{
+
+	write_word(GPIO_DATA_REG, read_word(GPIO_DATA_REG) & ~(I2C1_SCL) );
+	soft_delay(200,200);
+	printf("Slave clock triggered\n");
+
+
+} /* SlaveClockHandler */
+
+
+/** @fn enable_plic_interrupts
+ *  @return void
+ *  @arg None
+ * 
+ * */
+void enable_plic_interrupts()
+{
+	register unsigned int retval;
+
+	// Enable Global (PLIC) interrupts.
+	asm volatile("li      t0, 8\t\n"
+		     "csrrs   zero, mstatus, t0\t\n"
+		    );
+
+	// Enable Local (PLIC) interrupts.
+	asm volatile("li      t0, 0x800\t\n"
+		     "csrrs   zero, mie, t0\t\n"
+		    );
+
+	asm volatile(
+		     "csrr %[retval], mstatus\n"
+		     :
+		     [retval]
+		     "=r"
+		     (retval)
+		    );
+
+	log_debug("mstatus = %x\n", retval);
+
+	asm volatile(
+		     "csrr %[retval], mie\n"
+		     :
+		     [retval]
+		     "=r"
+		     (retval)
+		    );
+
+	log_debug("mie = %x\n", retval);
+
+	asm volatile(
+		     "csrr %[retval], mip\n"
+		     :
+		     [retval]
+		     "=r"
+		     (retval)
+		    );
+
+	log_debug("mip = %u\n", retval);
+
+
+} /* enable_plic_interrupts */
