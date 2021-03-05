@@ -30,12 +30,39 @@
 #define I2C_WRITE 0
 #define I2C_READ 1
 
+#define SLAVE_ADDRESS 0x90
+/*** 
+ * 
+ *  ////////////////////////    ENUM and STRUCT DEFINITIONS  //////////////////////////////////////////////
+ * 
+ * */
+
+/** This enum is required since both master and slave are sim on the same side so SDA transitions are not possible*/
+typedef enum I2C_Command_type
+{
+    I2C_Data_Cmd,
+    I2C_Start_Cmd,
+    I2C_Stop_Cmd
+} I2C_Command_type_e;
+
+typedef enum I2C_Slave_Mode
+{
+    I2C_Slave_Inactive,
+    I2C_Slave_Address_Check,
+    I2C_Slave_Read,
+    I2C_Slave_Write
+} I2C_Slave_Mode_e;
+
 /*** 
  * 
  *  ////////////////////////    EXTERN DEFINITIONS  //////////////////////////////////////////////
  * 
  * */
 
+I2C_Command_type_e i2c_cmd_type;
+I2C_Slave_Mode_e i2c_slave_mode;
+uint8_t slave_bit_pos_iterator;
+unsigned char slave_read_byte;
 
 /*** 
  * 
@@ -48,6 +75,7 @@ void I2c2_Init();
 void enable_plic_interrupts();
 
 void SlaveClockHandler(__attribute__((unused)) uint32_t num);
+void i2c_slave_monitor();
 
 void MasterSelectSlave(unsigned char slave_address);
 

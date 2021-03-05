@@ -6,7 +6,6 @@
 #include <uart.h>
 #include "plic_driver.h"
 
-#define SLAVE_ADDRESS 0x90
 
 int main()
 {
@@ -17,6 +16,7 @@ int main()
 
     // Set up Slave
     I2c2_Init();
+    i2c_slave_mode = I2C_Slave_Inactive;
 
     // Setup GPIO interrupt on slave SCL
     //init plic module
