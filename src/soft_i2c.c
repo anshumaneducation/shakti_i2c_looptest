@@ -231,8 +231,9 @@ void i2c_slave_monitor()
 		{
 			bitValue = 0;
 		}
+		if(slave_bit_pos_iterator != 0)
+			slave_read_byte = slave_read_byte << 1;
 		slave_read_byte = slave_read_byte | bitValue;
-		slave_read_byte = slave_read_byte << 1;
 		slave_bit_pos_iterator++;
 	}
 	else
