@@ -332,3 +332,38 @@ void enable_plic_interrupts()
 	log_debug("mip = %u\n", retval);
 
 } /* enable_plic_interrupts */
+
+
+/** @fn void custom_clint_handler(uintptr_t int_id, uintptr_t epc)
+ * @brief handler for machine timer interrupt
+ * @details handler for machine timer interrupt. This handles the timer interrupt and sets mtimecmp to clear timer interrupt.
+ * @param unsigned int ptr int_id
+ * @param unsigned int ptr epc
+ */
+void custom_clint_handler( __attribute__((unused)) uintptr_t int_id,  __attribute__((unused)) uintptr_t epc)
+{
+	printf("\n custom_clint_handler entered\n");
+
+	//set mtimecmp to some value. On appln reqt basis handle timer interrupt
+	*mtimecmp = -1;
+
+	log_info("Timer interrupt handled \n");
+
+	printf("custom_clint_handler exited\n");
+}
+
+void clint_init()
+{
+	asm volatile("li      t0, 0x80\t\n"
+		     "csrrs   zero, mie, t0\t\n"
+		    );
+
+	asm volatile("li      t0, 8\t\n"
+		     "csrrs   zero, mstatus, t0\t\n"
+		    );
+
+	
+	mcause_interrupt_table[MACH_TIMER_INTERRUPT]     = custom_clint_handler;
+
+	printf("Assigned custom_clint_handler to trap id : %d\n", MACH_TIMER_INTERRUPT);
+}

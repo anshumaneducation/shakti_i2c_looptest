@@ -11,6 +11,15 @@ int main()
 {
     printf("Entered main routine!\n");
 
+    // Configure Timer
+    uint64_t value = ( CLOCK_FREQUENCY / CLINT_DIVISOR );
+
+	clint_init();
+	printf("Configuring 1 second timer interrupt\n");
+	configure_counter(value);
+
+	while(1);
+
     // Set up Master
     I2c1_Init();
 
@@ -33,6 +42,7 @@ int main()
     // Master Check if Slave is alive
     MasterSelectSlave(SLAVE_ADDRESS);
 
+    while(1);
 
     // Check if Ack is received
     if(ReadSlaveAckForWrite())

@@ -10,6 +10,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "traps.h"
+#include "clint_driver.h"
+#include "log.h"
+
+
 /*** 
  * 
  *  ////////////////////////    LOCAL DEFINITIONS  //////////////////////////////////////////////
@@ -31,6 +36,9 @@
 #define I2C_READ 1
 
 #define SLAVE_ADDRESS 0x90
+
+#define CLINT_DIVISOR   256
+
 /*** 
  * 
  *  ////////////////////////    ENUM and STRUCT DEFINITIONS  //////////////////////////////////////////////
@@ -72,8 +80,10 @@ unsigned char slave_read_byte;
 
 void I2c1_Init();
 void I2c2_Init();
+void clint_Init();
 void enable_plic_interrupts();
 
+void custom_clint_handler( __attribute__((unused)) uintptr_t int_id,  __attribute__((unused)) uintptr_t epc);
 void SlaveClockHandler(__attribute__((unused)) uint32_t num);
 void i2c_slave_monitor();
 
