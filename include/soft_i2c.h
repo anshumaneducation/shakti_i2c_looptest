@@ -39,6 +39,8 @@
 
 #define CLINT_DIVISOR   256
 
+#define MS_TIMER_FREQ (uint64_t)((CLOCK_FREQUENCY / CLINT_DIVISOR ))
+
 /*** 
  * 
  *  ////////////////////////    ENUM and STRUCT DEFINITIONS  //////////////////////////////////////////////
@@ -71,6 +73,10 @@ I2C_Command_type_e i2c_cmd_type;
 I2C_Slave_Mode_e i2c_slave_mode;
 uint8_t slave_bit_pos_iterator;
 unsigned char slave_read_byte;
+unsigned char master_write_byte;
+uint64_t milliseconds;
+uint64_t byte_it;
+unsigned char baudrate_print;
 
 /*** 
  * 
@@ -80,7 +86,7 @@ unsigned char slave_read_byte;
 
 void I2c1_Init();
 void I2c2_Init();
-void clint_Init();
+void clint_Init(uint64_t value);
 void enable_plic_interrupts();
 
 void custom_clint_handler( __attribute__((unused)) uintptr_t int_id,  __attribute__((unused)) uintptr_t epc);

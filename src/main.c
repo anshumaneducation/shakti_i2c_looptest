@@ -11,14 +11,13 @@ int main()
 {
     printf("Entered main routine!\n");
 
-    // Configure Timer
-    uint64_t value = ( CLOCK_FREQUENCY / CLINT_DIVISOR );
+    // Configure 1 millisecond Timer
+    //uint64_t clint_module_freq = ( CLOCK_FREQUENCY / CLINT_DIVISOR );
+    //uint64_t value = 0.001 * clint_module_freq;
 
-	clint_init();
-	printf("Configuring 1 second timer interrupt\n");
-	configure_counter(value);
-
-	while(1);
+    milliseconds = 0;
+    printf("Configuring 1 millisecond timer interrupt\n");
+	clint_init(MS_TIMER_FREQ);
 
     // Set up Master
     I2c1_Init();
@@ -42,19 +41,51 @@ int main()
     // Master Check if Slave is alive
     MasterSelectSlave(SLAVE_ADDRESS);
 
-    while(1);
-
     // Check if Ack is received
-    if(ReadSlaveAckForWrite())
+    printf("\n\tI2C: I2C Write Ack\n");
+    byte_it = 0;
+    baudrate_print = 0;
+    while(ReadSlaveAckForWrite())
     {
-        printf("\n\tI2C: I2C Write Ack\n");
+        // Prepare to write data from master to slave
+        write_word(GPIO_DIRECTION_CNTRL_REG, (read_word(GPIO_DIRECTION_CNTRL_REG) & ~(I2C2_SDA)));
+        printf("SDA2 set as input\n");
 
+        write_word(GPIO_DIRECTION_CNTRL_REG, (read_word(GPIO_DIRECTION_CNTRL_REG) | (I2C1_SDA)));
+        printf("SDA1 set as output\n");
 
+        // Send last two digits of milliseconds counter as a byte from master to slave
+        master_write_byte = (uint8_t)(milliseconds%100);
+
+        i2c_cmd_type = I2C_Data_Cmd;
+        I2cWriteByteinAdd(master_write_byte, 200, I2C1_SDA, I2C1_SCL);
+        byte_it++;
+        if(baudrate_print == 1)
+        {
+            baudrate_print = 0;
+            printf("\nCurrent baudrate : %llu \n",byte_it*8);
+            byte_it = 0;
+            printf("\n");
+        }
     }
-    else
-    {
-        printf("\n\tI2C: Slave is dead\n");
-    }
+
+    printf("\n\tI2C: Slave is dead\n");
+
+    // I2C stop condition
+    printf("\n\tI2C: I2C Stop\n");
+    i2c_cmd_type = I2C_Stop_Cmd;
+	// scl = 1, sda = 0
+	write_word(GPIO_DATA_REG, read_word(GPIO_DATA_REG) | I2C1_SCL & ~(I2C1_SDA) );
+	soft_delay(200, 200);
+
+	// sda = 1
+	write_word(GPIO_DATA_REG, read_word(GPIO_DATA_REG) | (I2C1_SDA));
+	soft_delay(200, 200);
+
+	// scl = 0,sda = 0
+	write_word(GPIO_DATA_REG, read_word(GPIO_DATA_REG) & ~(I2C1_SCL)  & ~(I2C1_SDA) );
+	soft_delay(200, 200);
+    
    
     printf("Finished main routine!");
     return 0;

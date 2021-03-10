@@ -233,6 +233,8 @@ void i2c_slave_monitor()
 		}
 		if(slave_bit_pos_iterator != 0)
 			slave_read_byte = slave_read_byte << 1;
+		else
+			slave_read_byte = 0;
 		slave_read_byte = slave_read_byte | bitValue;
 		slave_bit_pos_iterator++;
 	}
@@ -255,11 +257,11 @@ void i2c_slave_monitor()
 			unsigned char read_write_bit = slave_read_byte & 1;
 			if (read_write_bit == I2C_WRITE)
 			{
-				i2c_slave_mode = I2C_Slave_Write;
+				i2c_slave_mode = I2C_Slave_Read;
 			}
 			else
 			{
-				i2c_slave_mode = I2C_Slave_Read;
+				i2c_slave_mode = I2C_Slave_Write;
 			}
 
 			// Check Slave address by masking LSB
@@ -278,7 +280,7 @@ void i2c_slave_monitor()
 		}
 		case I2C_Slave_Read:
 		{
-			printf("Received byte is 0x%x\n",slave_read_byte);
+			printf("Master byte : 0x%x Slave byte is 0x%x\n",master_write_byte,slave_read_byte);
 			break;
 		}
 		case I2C_Slave_Write:
@@ -342,18 +344,29 @@ void enable_plic_interrupts()
  */
 void custom_clint_handler( __attribute__((unused)) uintptr_t int_id,  __attribute__((unused)) uintptr_t epc)
 {
-	printf("\n custom_clint_handler entered\n");
+	//printf("\n custom_clint_handler entered\n");
 
 	//set mtimecmp to some value. On appln reqt basis handle timer interrupt
-	*mtimecmp = -1;
+	*mtimecmp = *mtime + MS_TIMER_FREQ;
 
-	log_info("Timer interrupt handled \n");
+	milliseconds++;
 
-	printf("custom_clint_handler exited\n");
+	baudrate_print = 1;
+	//log_info("Timer interrupt handled \n");
+
+	//printf("custom_clint_handler exited\n");
 }
 
-void clint_init()
+void clint_init(uint64_t value)
 {
+	// Config Registers
+	*mtimecmp = *mtime + value;
+
+	// Setup ISR
+	mcause_interrupt_table[MACH_TIMER_INTERRUPT]     = custom_clint_handler;
+
+	printf("Assigned custom_clint_handler to trap id : %d\n", MACH_TIMER_INTERRUPT);
+
 	asm volatile("li      t0, 0x80\t\n"
 		     "csrrs   zero, mie, t0\t\n"
 		    );
@@ -363,7 +376,5 @@ void clint_init()
 		    );
 
 	
-	mcause_interrupt_table[MACH_TIMER_INTERRUPT]     = custom_clint_handler;
-
-	printf("Assigned custom_clint_handler to trap id : %d\n", MACH_TIMER_INTERRUPT);
+	
 }
