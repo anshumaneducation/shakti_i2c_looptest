@@ -48,7 +48,7 @@ void I2c2_Init()
  *  @arg None
  * 
  * */
-void MasterSelectSlave(unsigned char slave_address)
+void MasterSelectSlave(unsigned char slave_address,unsigned char delay)
 {
 
 	printf("\n\tI2C: I2C Start\n");
@@ -56,24 +56,24 @@ void MasterSelectSlave(unsigned char slave_address)
 	i2c_cmd_type = I2C_Start_Cmd;
 	// sda, scl = 1
 	write_word(GPIO_DATA_REG, read_word(GPIO_DATA_REG) | I2C1_SCL | I2C1_SDA);
-	soft_delay(200, 200);
+	soft_delay(delay, delay);
 
 	// sda = 0
 	write_word(GPIO_DATA_REG, read_word(GPIO_DATA_REG) & ~(I2C1_SDA));
-	soft_delay(200, 200);
+	soft_delay(delay, delay);
 
 	// scl = 0
 	write_word(GPIO_DATA_REG, read_word(GPIO_DATA_REG) & ~(I2C1_SCL));
-	soft_delay(200, 200);
+	soft_delay(delay, delay);
 
 	// Select slave node
 	printf("\n\tI2C: I2C Write\n");
 	i2c_cmd_type = I2C_Data_Cmd;
-	I2cWriteByteinAdd((slave_address | I2C_WRITE), 200, I2C1_SDA, I2C1_SCL);
+	I2cWriteByteinAdd((slave_address | I2C_WRITE), delay, I2C1_SDA, I2C1_SCL);
 
 	// sda = 1
 	write_word(GPIO_DATA_REG, read_word(GPIO_DATA_REG) | (I2C1_SDA));
-	soft_delay(200, 200);
+	soft_delay(delay, delay);
 
 } /* MasterSelectSlave */
 
@@ -137,7 +137,7 @@ void I2cWriteByteinAdd(unsigned char byte, unsigned char delay, int sda_address,
  *  @arg None
  * 
  * */
-bool ReadSlaveAckForWrite()
+bool ReadSlaveAckForWrite(unsigned char delay)
 {
 
 	// Set SDA1 as input
@@ -149,14 +149,14 @@ bool ReadSlaveAckForWrite()
 	// Give Master clock
 	//scl = 1
 	write_word(GPIO_DATA_REG, (read_word(GPIO_DATA_REG) | I2C1_SCL));
-	soft_delay(200, 200);
+	soft_delay(delay, delay);
 
 	// Read bus
 	readData = read_word(GPIO_DATA_REG) & I2C1_SDA;
 
 	//scl = 0
 	write_word(GPIO_DATA_REG, (read_word(GPIO_DATA_REG) & ~(I2C1_SCL)));
-	soft_delay(200, 200);
+	soft_delay(delay, delay);
 
 	if (readData == 0)
 		return false;

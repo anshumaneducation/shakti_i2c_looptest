@@ -30,7 +30,7 @@
 #define GPIOD_IS_IN 0
 #define GPIOD_IS_OUT 1
 
-#define DELAY_COUNT 200
+#define DELAY_COUNT 50
 
 #define I2C_WRITE 0
 #define I2C_READ 1
@@ -93,10 +93,10 @@ void custom_clint_handler( __attribute__((unused)) uintptr_t int_id,  __attribut
 void SlaveClockHandler(__attribute__((unused)) uint32_t num);
 void i2c_slave_monitor();
 
-void MasterSelectSlave(unsigned char slave_address);
+void MasterSelectSlave(unsigned char slave_address,unsigned char delay);
 
 void soft_delay(unsigned int count1, unsigned int count2);
 void I2cWriteByteinAdd(unsigned char byte, unsigned char delay, int sda_address ,int scl_address);
-bool ReadSlaveAckForWrite();
+bool ReadSlaveAckForWrite(unsigned char delay);
 
 #endif

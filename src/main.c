@@ -39,13 +39,13 @@ int main()
     enable_plic_interrupts();
 
     // Master Check if Slave is alive
-    MasterSelectSlave(SLAVE_ADDRESS);
+    MasterSelectSlave(SLAVE_ADDRESS, DELAY_COUNT);
 
     // Check if Ack is received
     printf("\n\tI2C: I2C Write Ack\n");
     byte_it = 0;
     baudrate_print = 0;
-    while(ReadSlaveAckForWrite())
+    while(ReadSlaveAckForWrite(DELAY_COUNT))
     {
         // Prepare to write data from master to slave
         write_word(GPIO_DIRECTION_CNTRL_REG, (read_word(GPIO_DIRECTION_CNTRL_REG) & ~(I2C2_SDA)));
@@ -58,7 +58,7 @@ int main()
         master_write_byte = (uint8_t)(milliseconds%100);
 
         i2c_cmd_type = I2C_Data_Cmd;
-        I2cWriteByteinAdd(master_write_byte, 200, I2C1_SDA, I2C1_SCL);
+        I2cWriteByteinAdd(master_write_byte, DELAY_COUNT, I2C1_SDA, I2C1_SCL);
         byte_it++;
         if(baudrate_print == 1)
         {
@@ -72,7 +72,14 @@ int main()
     printf("\n\tI2C: Slave is dead\n");
 
     // I2C stop condition
+
     printf("\n\tI2C: I2C Stop\n");
+    write_word(GPIO_DIRECTION_CNTRL_REG, (read_word(GPIO_DIRECTION_CNTRL_REG) & ~(I2C2_SDA)));
+    printf("SDA2 set as input\n");
+
+    write_word(GPIO_DIRECTION_CNTRL_REG, (read_word(GPIO_DIRECTION_CNTRL_REG) | (I2C1_SDA)));
+    printf("SDA1 set as output\n");
+    
     i2c_cmd_type = I2C_Stop_Cmd;
 	// scl = 1, sda = 0
 	write_word(GPIO_DATA_REG, read_word(GPIO_DATA_REG) | I2C1_SCL & ~(I2C1_SDA) );
